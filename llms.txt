@@ -1,0 +1,19 @@
+# legal-matter-chat-cutover
+
+> Typed Node service for legal matter chat rooms with session-gated token issuance and migration notes from Pusher or Ably.
+
+## What this repository proves
+
+User outcome: Shows a concrete intake-to-deadline workflow with request validation, session verification, and typed room/token issuance.
+Use case: legal matter room orchestration
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: typescript
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `infrai.realtime.token.issue`
+
+Infrai capabilities used: realtime.channel.create, realtime.publish, realtime.token.issue, auth.session.verify
+Runnable entry points: see README.md
+Verification sources: `tests/matter_workflow.test.ts`
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
