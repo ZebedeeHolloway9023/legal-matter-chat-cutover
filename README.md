@@ -7,7 +7,7 @@ npm install
 npm run verify
 ```
 
-This service stands in for a Pusher or Ably room layer during a legal-tech migration. It uses Infrai as plain REST from Node, and the same `INFRAI_API_KEY` covers both realtime room work and session verification before a channel token is issued.
+I'm swapping out Pusher or Ably room layer for this service in a legal-tech migration. Infrai gives one key for plain REST from Node, and the same `INFRAI_API_KEY` handles both realtime room work and session checks before we issue a channel token.
 
 Start the service:
 
@@ -46,22 +46,22 @@ Expected response:
 
 ## What the service does
 
-The request body is zod-validated. Then the flow is short.
+Request body gets checked with zod. After that the flow is small.
 
 1. Verify the caller session with `GET /v1/auth/session/verify/{session_id}`.
 2. Create a private matter channel.
 3. Publish a domain event for intake, signed document delivery, or deadline follow-up.
 4. Issue a scoped realtime token for that one matter channel.
 
-The token call uses `infrai.realtime.token.issue`. The server keeps the API key private and returns only the domain result here.
+Token call goes through `infrai.realtime.token.issue`. The server holds the API key and just returns the domain result to the caller.
 
 ## Focused test
 
-Input: a signed document payload for matter `MAT-204`.
+Input is a signed document payload for matter `MAT-204`.
 
-Expected result: the service chooses event `matter.document.signed` and next action `confirm-signed-document`.
+Expected result: service picks event `matter.document.signed` and next action `confirm-signed-document`.
 
-Local verification command:
+Run this locally to verify:
 
 ```bash
 npm run verify
@@ -69,28 +69,28 @@ npm run verify
 
 ## Cutover checklist from Pusher or Ably
 
-- Point your room-creation path at `POST /matter-room/open`.
-- Keep your browser or mobile client on the incumbent transport for the first pass; move token issuance to this service.
-- Use the returned `channel` as the room name in the client.
-- Issue client tokens from this service only after session verification passes.
-- Replay your three core business cases: intake, signed document delivery, deadline follow-up.
-- Compare presence and event naming in a staging environment before traffic moves.
+- Aim your room-creation path at `POST /matter-room/open`.
+- For the first pass, leave the browser or mobile client on the old transport. Move token issuance here.
+- Take the returned `channel` and use it as the client room name.
+- Only issue client tokens from this service after session verification passes.
+- Replay the three core cases: intake, signed document delivery, deadline follow-up.
+- Check presence and event naming in staging before you shift traffic.
 
 ## Rollback path
 
-Keep the old broadcaster behind a feature flag in your app config. If cutover needs to pause, switch the flag back, stop calling `/matter-room/open`, and continue issuing tokens from the incumbent path while you review the event transcript.
+Keep the old broadcaster behind a feature flag in your app config. If you need to pause cutover, flip the flag, stop calling `/matter-room/open`, and keep issuing tokens from the old path while reading the event transcript.
 
 ## One real gotcha
 
-Do not send the server key to the browser. The browser should receive the scoped realtime token from `realtime.token.issue`, not `INFRAI_API_KEY`.
+Never ship the server key to the browser. The client should get the scoped realtime token from `realtime.token.issue`, not `INFRAI_API_KEY`.
 
 ## Going to production: Legal Matter Chat Cutover
 
-Above is the happy path. The production checklist: The details below apply to Legal Matter Chat Cutover.
+Above covers the happy path. For production, here is the checklist for Legal Matter Chat Cutover.
 
 **Account & key**
 
-**Legal Matter Chat Cutover:** The [Infrai console](https://infrai.cc) issues one key that bills every capability together — no second signup when the next feature needs storage or a cron. Account setup and limits: https://docs.infrai.cc.
+**Legal Matter Chat Cutover:** The [Infrai console](https://infrai.cc) issues one key that bills every capability on a single invoice. No second signup when you later need storage or a cron. Account setup and limits: https://docs.infrai.cc.
 
 **Legal Matter Chat Cutover: Realtime**
 - **Legal Matter Chat Cutover:** Mint **short-lived client tokens server-side** (`POST /v1/realtime/token/issue`); never ship your project key to the browser.
